@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-HK"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>約人出街</title>
+<style>
+:root{--bg:#f5f7fa;--c:#fff;--t:#1d2733;--m:#6b7785;--p:#0b8f6a;--b:#dde3ea;--w:#c0392b}
+@media(prefers-color-scheme:dark){:root{--bg:#10161d;--c:#18212b;--t:#e8edf2;--m:#93a0ad;--b:#2a3644}}
+*{box-sizing:border-box}body{margin:0;font:15px/1.5 system-ui,"PingFang HK","Noto Sans TC",sans-serif;background:var(--bg);color:var(--t)}
+header{display:flex;gap:8px;align-items:center;padding:10px 14px;background:var(--p);color:#fff;flex-wrap:wrap}
+header h1{font-size:18px;margin:0;flex:1}header button{background:#fff3;color:#fff;border:1px solid #fff6}
+nav{display:flex;overflow-x:auto;background:var(--c);border-bottom:1px solid var(--b)}
+nav button{flex:none;border:0;background:none;color:var(--m);padding:11px 14px;font-size:15px;border-bottom:3px solid transparent}
+nav button.on{color:var(--p);border-color:var(--p);font-weight:600}
+main{max-width:820px;margin:auto;padding:12px}
+section{display:none}section.on{display:block}
+.card{background:var(--c);border:1px solid var(--b);border-radius:10px;padding:12px;margin:10px 0}
+input,select,textarea,button{font:inherit;padding:8px 10px;border-radius:8px;border:1px solid var(--b);background:var(--c);color:var(--t)}
+button{cursor:pointer}button.p{background:var(--p);color:#fff;border-color:var(--p)}button.d{color:var(--w)}
+.row{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}.row>*{flex:1;min-width:110px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.grid img{width:100%;height:150px;object-fit:cover;border-radius:8px}
+.m{color:var(--m);font-size:13px}.w{background:var(--w);color:#fff;border-radius:6px;padding:2px 8px;margin:2px;display:inline-block}
+.adm{display:none}body.admin .adm{display:inline-block}
+table{width:100%;border-collapse:collapse}td{padding:4px 6px;border-bottom:1px solid var(--b)}
+#notice{background:#fff3cd;color:#664d03;padding:8px 12px;border-radius:8px;margin:8px 0}
+dialog{border:1px solid var(--b);border-radius:12px;background:var(--c);color:var(--t)}
+</style></head><body>
+<header><h1>🎒 約人出街</h1><span id="who"></span><button id="loginBtn">管理員登入</button></header>
+<nav id="nav"><button data-t="out" class="on">約人</button><button data-t="ph">相片</button><button data-t="wx">天氣</button><button data-t="tr">交通到站</button><button data-t="ad" id="adminTab" hidden>管理</button></nav>
+<main>
+<div id="notice" hidden></div>
+<button class="adm" id="editNotice">編輯公告</button>
+
+<section id="t-out" class="on">
+ <div class="card"><b>發起新約會</b>
+  <div class="row"><input id="oT" placeholder="活動名稱"><input id="oD" type="date"><input id="oH" type="time"></div>
+  <div class="row"><input id="oP" placeholder="集合地點"><input id="oN" placeholder="備註（可選）"></div>
+  <button class="p" id="oAdd">發佈</button> <button id="oWa">📲 WhatsApp 分享（群組／電話）</button></div>
+ <div id="oList"></div>
+</section>
+
+<section id="t-ph">
+ <div class="card"><b>上載當日相片</b>
+  <div class="row"><input id="pF" type="file" accept="image/*" multiple><input id="pC" placeholder="說明（可選）"></div>
+  <button class="p" id="pUp">上載</button> <span id="pS" class="m"></span></div>
+ <div class="grid" id="pList"></div>
+</section>
+
+<section id="t-wx">
+ <div class="card"><b>天氣警告信號</b><div id="wW" class="m">載入中…</div></div>
+ <div class="card"><b>九天天氣預報</b><div id="w9" class="m">載入中…</div></div>
+ <div class="card"><b>各區溫度及濕度</b><div class="m" id="wU"></div><table id="wT"></table></div>
+</section>
+
+<section id="t-tr">
+ <div class="card"><b>🚌 九巴／龍運</b>
+  <div class="row"><input id="kR" placeholder="路線，如 1A"><select id="kD"><option value="outbound">去程</option><option value="inbound">回程</option></select><button class="p" id="kGo">查詢</button></div><div id="kO" class="m"></div></div>
+ <div class="card"><b>🚇 港鐵</b>
+  <div class="row"><select id="mL"></select><select id="mS"></select><button class="p" id="mGo">查詢</button></div><div id="mO" class="m"></div></div>
+ <div class="card"><b>🚐 專線小巴</b>
+  <div class="row"><select id="gR"><option value="HKI">港島</option><option value="KLN">九龍</option><option value="NT">新界</option></select><input id="gC" placeholder="路線，如 6"><button id="gFind">搵路線</button></div>
+  <div class="row"><select id="gDir"></select><select id="gStop"></select><button class="p" id="gGo">查詢</button></div><div id="gO" class="m"></div></div>
+ <div class="card"><b>🚈 輕鐵</b>
+  <div class="row"><input id="lS" type="number" placeholder="輕鐵站編號"><button class="p" id="lGo">查詢</button></div>
+  <div class="m">需輸入輕鐵站編號（官方公開資料有站名對照表）。</div><div id="lO" class="m"></div></div>
+ <div class="m">暫未包括城巴／新巴及電車。</div>
+</section>
+
+<section id="t-ad">
+ <div class="card"><b>更改我嘅密碼</b><div class="row"><input id="npw" type="password" placeholder="新密碼（至少6位）"><button class="p" id="chg">更改</button></div></div>
+ <div class="card" id="mainOnly"><b>管理員名單</b><div id="aList"></div>
+  <div class="row"><input id="aN" placeholder="新管理員名稱"><input id="aP" type="password" placeholder="密碼"><button class="p" id="aAdd">新增管理員</button></div></div>
+</section>
+</main>
+
+<dialog id="dlg"><div>
+ <h3>管理員登入</h3><div class="row"><input id="lu" autocapitalize="off" autocorrect="off" placeholder="帳號" autocomplete="username"></div>
+ <div class="row"><input id="lp" type="password" autocapitalize="off" placeholder="密碼" autocomplete="current-password"></div>
+ <div id="le" class="m" style="color:var(--w)"></div>
+ <div class="row"><button onclick="document.getElementById('dlg').close()">取消</button><button class="p" id="lok">登入</button></div></div></dialog>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {initializeFirestore,collection,doc,getDoc,setDoc,addDoc,deleteDoc,updateDoc,onSnapshot,query,orderBy} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {getStorage,ref,uploadBytes,getDownloadURL,deleteObject} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+const app=initializeApp({apiKey:"AIzaSyAagdEPgDY_2koF8E-dpIqeMS3aTRo3cLc",authDomain:"chan-b4286.firebaseapp.com",projectId:"chan-b4286",storageBucket:"chan-b4286.firebasestorage.app",messagingSenderId:"822761856387",appId:"1:822761856387:web:b17b178a145d46e9076ab6"});
+const db=initializeFirestore(app,{experimentalAutoDetectLongPolling:true}),st=getStorage(app);
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sha=async s=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s.trim())))].map(b=>b.toString(16).padStart(2,'0')).join('');
+const J=async u=>(await fetch(u)).json();
+const mins=t=>{const m=Math.round((new Date(t)-Date.now())/60000);return m<=0?'即將':m+'分鐘'};
+let me=JSON.parse(sessionStorage.getItem('me')||'null'),outs=[],phs=[];
+
+getDoc(doc(db,'admins','永晞')).then(d=>{if(!d.exists())setDoc(doc(db,'admins','永晞'),{hash:'193333f1eb070dd2e0c59db859876666d7599ce990b42f4d9b7f3a2d4e83184e',main:true})}).catch(()=>{});
+
+function authUI(){
+ $('#who').textContent=me?`👤 ${me.name}${me.main?'（主管理員）':''}`:'';
+ $('#loginBtn').textContent=me?'登出':'管理員登入';
+ $('#adminTab').hidden=!me;document.body.classList.toggle('admin',!!me);
+ $('#mainOnly').style.display=me&&me.main?'':'none';
+ renderO();renderP();
+}
+$('#nav').onclick=e=>{const t=e.target.dataset.t;if(!t)return;$$('#nav button').forEach(b=>b.classList.toggle('on',b===e.target));$$('section').forEach(s=>s.classList.toggle('on',s.id==='t-'+t))};
+$('#loginBtn').onclick=()=>{if(me){me=null;sessionStorage.removeItem('me');authUI();$('#nav button').click()}else $('#dlg').showModal()};
+const MH='193333f1eb070dd2e0c59db859876666d7599ce990b42f4d9b7f3a2d4e83184e';
+const DH='193333f1eb070dd2e0c59db859876666d7599ce990b42f4d9b7f3a2d4e83184e';
+$('#lok').onclick=async()=>{
+ const n=$('#lu').value.trim(),h=await sha($('#lp').value);let d=null,err='';
+ try{d=await getDoc(doc(db,'admins',n))}catch(e){err=e.message}
+ const ok=d&&d.exists()?d.data().hash===h:(n==='永晞'&&h===DH);
+ if(ok){me={name:n,main:d&&d.exists()?!!d.data().main:true};
+  if(n==='永晞'&&!(d&&d.exists()))setDoc(doc(db,'admins','永晞'),{hash:DH,main:true}).catch(()=>{});
+  sessionStorage.setItem('me',JSON.stringify(me));$('#dlg').close();$('#lp').value='';authUI();
+  if(err)alert('已登入，但雲端未能連線（'+err+'），請檢查 Firestore 規則');}
+ else $('#le').textContent=err?'連線失敗：'+err:'帳號或密碼錯誤';};
+onSnapshot(doc(db,'settings','site'),d=>{const t=d.exists()?d.data().notice:'';$('#notice').hidden=!t;$('#notice').textContent='📢 '+(t||'')});
+$('#editNotice').onclick=()=>{const t=prompt('公告內容（留空即移除）');if(t!==null)setDoc(doc(db,'settings','site'),{notice:t})};
+
+onSnapshot(query(collection(db,'outings'),orderBy('date')),s=>{outs=s.docs.map(d=>({id:d.id,...d.data()}));renderO()});
+$('#oAdd').onclick=async()=>{const o={title:$('#oT').value.trim(),date:$('#oD').value,time:$('#oH').value,place:$('#oP').value.trim(),note:$('#oN').value.trim()};
+ if(!o.title||!o.date)return alert('請填寫活動名稱同日期');try{await addDoc(collection(db,'outings'),o)}catch(e){return alert('發佈失敗，請檢查 Firestore Rules：'+e.message)}['oT','oD','oH','oP','oN'].forEach(i=>$('#'+i).value='')};
+$('#oWa').onclick=()=>{const o={title:$('#oT').value.trim(),date:$('#oD').value,time:$('#oH').value,place:$('#oP').value.trim(),note:$('#oN').value.trim()};if(!o.title||!o.date)return alert('請先填寫活動名稱同日期');const n=prompt('輸入電話號碼直接 send；留空就揀群組／聯絡人');const t=(n||'').replace(/\D/g,'');open((t?`https://wa.me/${t.length===8?'852'+t:t}`:'https://wa.me/')+'?text='+encodeURIComponent(msg(o)))};
+const msg=o=>`📅 約人出街：${o.title}\n日期：${o.date} ${o.time||''}\n地點：${o.place||'待定'}${o.note?'\n備註：'+o.note:''}\n${location.href}`;
+function renderO(){$('#oList').innerHTML=outs.map(o=>`<div class="card"><b>${esc(o.title)}</b><div>📅 ${esc(o.date)} ${esc(o.time)}　📍 ${esc(o.place||'待定')}</div><div class="m">${esc(o.note)}</div>
+ <div class="row"><button data-a="wg" data-i="${o.id}">WhatsApp 群組／聯絡人</button><button data-a="wn" data-i="${o.id}">WhatsApp 指定電話</button><button class="adm" data-a="eo" data-i="${o.id}">編輯</button><button class="adm d" data-a="do" data-i="${o.id}">刪除</button></div></div>`).join('')||'<p class="m">未有約會，發起一個啦！</p>'}
+$('#oList').onclick=async e=>{const a=e.target.dataset.a,o=outs.find(x=>x.id===e.target.dataset.i);if(!a||!o)return;
+ if(a==='wg')open('https://wa.me/?text='+encodeURIComponent(msg(o)));
+ if(a==='wn'){const n=prompt('電話號碼（香港8位數字，或連國碼）');if(n){const t=n.replace(/\D/g,'');open(`https://wa.me/${t.length===8?'852'+t:t}?text=`+encodeURIComponent(msg(o)))}}
+ if(a==='do'&&confirm('刪除此約會？'))deleteDoc(doc(db,'outings',o.id));
+ if(a==='eo'){const u={};for(const [k,l] of [['title','活動名稱'],['date','日期 YYYY-MM-DD'],['time','時間'],['place','地點'],['note','備註']]){const v=prompt(l,o[k]||'');if(v===null)return;u[k]=v}updateDoc(doc(db,'outings',o.id),u)}};
+
+onSnapshot(query(collection(db,'photos'),orderBy('ts','desc')),s=>{phs=s.docs.map(d=>({id:d.id,...d.data()}));renderP()});
+$('#pUp').onclick=async()=>{const fs=[...$('#pF').files];if(!fs.length)return alert('請揀相');
+ for(let i=0;i<fs.length;i++){$('#pS').textContent=`上載中 ${i+1}/${fs.length}…`;const f=fs[i],path=`photos/${Date.now()}_${f.name}`;
+  try{await uploadBytes(ref(st,path),f);await addDoc(collection(db,'photos'),{url:await getDownloadURL(ref(st,path)),path,cap:$('#pC').value,ts:Date.now(),day:new Date().toLocaleDateString('zh-HK')})}catch(e){$('#pS').textContent='失敗：'+e.message;return}}
+ $('#pS').textContent='完成 ✅';$('#pF').value='';$('#pC').value=''};
+function renderP(){$('#pList').innerHTML=phs.map(p=>`<div><a href="${esc(p.url)}" target="_blank"><img loading="lazy" src="${esc(p.url)}"></a><div class="m">${esc(p.day)} ${esc(p.cap)}</div><button class="adm" data-a="ec" data-i="${p.id}">改說明</button> <button class="adm d" data-a="dp" data-i="${p.id}">移除</button></div>`).join('')||'<p class="m">未有相片</p>'}
+$('#pList').onclick=async e=>{const a=e.target.dataset.a,p=phs.find(x=>x.id===e.target.dataset.i);if(!a||!p)return;
+ if(a==='dp'&&confirm('移除此相片？')){try{await deleteObject(ref(st,p.path))}catch(_){}deleteDoc(doc(db,'photos',p.id))}
+ if(a==='ec'){const v=prompt('說明',p.cap||'');if(v!==null)updateDoc(doc(db,'photos',p.id),{cap:v})}};
+
+onSnapshot(collection(db,'admins'),s=>{$('#aList').innerHTML=s.docs.map(d=>`<div class="row"><span>${esc(d.id)}${d.data().main?'（主）':''}</span>${d.data().main?'':`<button class="d" data-r="${esc(d.id)}">移除</button>`}</div>`).join('')});
+$('#aList').onclick=e=>{const r=e.target.dataset.r;if(r&&me?.main&&confirm('移除管理員 '+r+'？'))deleteDoc(doc(db,'admins',r))};
+$('#aAdd').onclick=async()=>{const n=$('#aN').value.trim(),p=$('#aP').value;if(!n||p.length<6||!me?.main)return alert('名稱必填，密碼至少6位');
+ await setDoc(doc(db,'admins',n),{hash:await sha(p),main:false});$('#aN').value=$('#aP').value=''};
+$('#chg').onclick=async()=>{const p=$('#npw').value;if(p.length<6)return alert('密碼至少6位');await updateDoc(doc(db,'admins',me.name),{hash:await sha(p)});$('#npw').value='';alert('已更改')};
+
+const H='https://data.weather.gov.hk/weatherAPI/opendata/weather.php?lang=tc&dataType=';
+async function wx(){
+ try{const w=await J(H+'warnsum');const k=Object.values(w);$('#wW').innerHTML=k.length?k.map(x=>`<span class="w">${esc(x.name)}${x.type?' '+esc(x.type):''}</span>`).join('')+`<div class="m">${esc(k[0].issueTime||'')}</div>`:'目前冇生效嘅警告信號'}catch(e){$('#wW').textContent='載入失敗'}
+ try{const f=await J(H+'fnd');$('#w9').innerHTML=f.weatherForecast.map(d=>`<div class="row"><b>${d.forecastDate.slice(4,6)}/${d.forecastDate.slice(6)} ${esc(d.week)}</b><span>${d.forecastMintemp.value}–${d.forecastMaxtemp.value}°C　濕度${d.forecastMinrh.value}–${d.forecastMaxrh.value}%</span><span class="m">${esc(d.forecastWeather)}</span></div>`).join('')}catch(e){$('#w9').textContent='載入失敗'}
+ try{const r=await J(H+'rhrread');
+  $('#wU').textContent='更新：'+new Date(r.temperature.recordTime).toLocaleString('zh-HK')+(r.humidity.data[0]?`　相對濕度 ${r.humidity.data[0].place} ${r.humidity.data[0].value}%`:'');
+  $('#wT').innerHTML=r.temperature.data.map(x=>`<tr><td>${esc(x.place)}</td><td>${x.value}°C</td></tr>`).join('')}catch(e){$('#wU').textContent='載入失敗'}
+}
+wx();setInterval(wx,600000);
+
+const L={AEL:'HOK香港 KOW九龍 TSY青衣 AIR機場 AWE博覽館',TCL:'HOK香港 KOW九龍 OLY奧運 NAC南昌 LAK荔景 TSY青衣 SUN欣澳 TUC東涌',TML:'WKS烏溪沙 MOS馬鞍山 HEO恆安 TSH大水坑 SHM石門 CIO第一城 STW沙田圍 CKT車公廟 TAW大圍 HIK顯徑 DIH鑽石山 KAT啟德 SUW宋皇臺 TKW土瓜灣 HOM何文田 HUH紅磡 ETS尖東 AUS柯士甸 MEF美孚 TWW荃灣西 KSR錦上路 YUL元朗 LOP朗屏 TIS天水圍 SIH兆康 TUM屯門',TKL:'NOP北角 QUB鰂魚涌 YAT油塘 TIK調景嶺 TKO將軍澳 LHP日出康城 HAH坑口 POA寶琳',EAL:'ADM金鐘 EXC會展 HUH紅磡 MKK旺角東 KOT九龍塘 TAW大圍 SHT沙田 FOT火炭 UNI大學 TAP大埔墟 TWO太和 FAN粉嶺 SHS上水 LOW羅湖 LMC落馬洲',ISL:'KET堅尼地城 HKU香港大學 SYP西營盤 SHW上環 CEN中環 ADM金鐘 WAC灣仔 CAB銅鑼灣 TIH天后 FOH炮台山 NOP北角 QUB鰂魚涌 TAK太古 SWH西灣河 SKW筲箕灣 HFC杏花邨 CHW柴灣',KTL:'WHA黃埔 HOM何文田 YMT油麻地 MOK旺角 PRE太子 SKM石硤尾 KOT九龍塘 LOF樂富 WTS黃大仙 DIH鑽石山 CHH彩虹 KOB九龍灣 NTK牛頭角 KWT觀塘 LAT藍田 YAT油塘 TIK調景嶺',TWL:'CEN中環 ADM金鐘 TST尖沙咀 JOR佐敦 YMT油麻地 MOK旺角 PRE太子 SSP深水埗 CSW長沙灣 LCK荔枝角 MEF美孚 LAK荔景 KWF葵芳 KWH葵興 TWH大窩 TSW荃灣',SIL:'ADM金鐘 OCP海洋公園 WCH黃竹坑 LET利東 SOH海怡半島',DRL:'SUN欣澳 DIS迪士尼'};
+const LN={AEL:'機場快線',TCL:'東涌綫',TML:'屯馬綫',TKL:'將軍澳綫',EAL:'東鐵綫',ISL:'港島綫',KTL:'觀塘綫',TWL:'荃灣綫',SIL:'南港島綫',DRL:'迪士尼綫'};
+const SN={};Object.values(L).forEach(v=>v.split(' ').forEach(x=>SN[x.slice(0,3)]=x.slice(3)));
+$('#mL').innerHTML=Object.keys(L).map(k=>`<option value="${k}">${LN[k]}</option>`).join('');
+const fillS=()=>$('#mS').innerHTML=L[$('#mL').value].split(' ').map(x=>`<option value="${x.slice(0,3)}">${x.slice(3)}</option>`).join('');
+$('#mL').onchange=fillS;fillS();
+$('#mGo').onclick=async()=>{const l=$('#mL').value,s=$('#mS').value;$('#mO').textContent='載入中…';
+ try{const r=await J(`https://rt.data.gov.hk/v1/transport/mtr/getSchedule.php?line=${l}&sta=${s}&lang=TC`),d=r.data?.[l+'-'+s];
+  if(!d)return $('#mO').textContent=r.message||'暫無資料';
+  $('#mO').innerHTML=['UP','DOWN'].filter(k=>d[k]).map(k=>`<b>${k==='UP'?'上行':'下行'}</b>`+d[k].map(t=>`<div>往 ${esc(SN[t.dest]||t.dest)}　月台${esc(t.plat)}　${t.ttnt==0?'即將':t.ttnt+'分鐘'}</div>`).join('')).join('')}catch(e){$('#mO').textContent='載入失敗'}};
+
+let kStops;
+$('#kGo').onclick=async()=>{const r=$('#kR').value.trim().toUpperCase(),d=$('#kD').value,o=$('#kO');if(!r)return;o.textContent='載入中…';
+ try{kStops??=Object.fromEntries((await J('https://data.etabus.gov.hk/v1/transport/kmb/stop')).data.map(s=>[s.stop,s.name_tc]));
+  const [rs,re]=await Promise.all([J(`https://data.etabus.gov.hk/v1/transport/kmb/route-stop/${r}/${d}/1`),J(`https://data.etabus.gov.hk/v1/transport/kmb/route-eta/${r}/1`)]);
+  const dc=d==='outbound'?'O':'I';if(!rs.data.length)return o.textContent='搵唔到呢條路線';
+  o.innerHTML=rs.data.map(s=>{const e=re.data.filter(x=>x.dir===dc&&x.seq==s.seq&&x.eta);return `<div>${s.seq}. ${esc(kStops[s.stop]||s.stop)}　<b>${e.length?e.map(x=>mins(x.eta)).join('、'):'–'}</b></div>`}).join('')}catch(e){o.textContent='載入失敗'}};
+
+let gRoute;
+$('#gFind').onclick=async()=>{const o=$('#gO');o.textContent='搵緊…';
+ try{const r=await J(`https://data.etagmb.gov.hk/route/${$('#gR').value}/${$('#gC').value.trim().toUpperCase()}`);gRoute=r.data?.routes?.[0]||r.data?.[0];
+  if(!gRoute)return o.textContent='搵唔到路線';
+  $('#gDir').innerHTML=gRoute.directions.map(d=>`<option value="${d.route_seq}">${esc(d.orig_tc)} → ${esc(d.dest_tc)}</option>`).join('');o.textContent='';await gSt()}catch(e){o.textContent='載入失敗'}};
+const gSt=async()=>{const r=await J(`https://data.etagmb.gov.hk/route-stop/${gRoute.route_id}/${$('#gDir').value}`);
+ $('#gStop').innerHTML=r.data.route_stops.map(s=>`<option value="${s.stop_seq}">${s.stop_seq}. ${esc(s.name_tc)}</option>`).join('')};
+$('#gDir').onchange=()=>gSt();
+$('#gGo').onclick=async()=>{if(!gRoute)return;const o=$('#gO');
+ try{const r=await J(`https://data.etagmb.gov.hk/eta/route-stop/${gRoute.route_id}/${$('#gDir').value}/${$('#gStop').value}`);
+  const e=(r.data||[]).flatMap(x=>x.eta||[x]).filter(x=>x.diff!=null);
+  o.innerHTML=e.length?e.map(x=>`<div>${x.diff<=0?'即將':x.diff+'分鐘'} ${esc(x.remarks_tc||'')}</div>`).join(''):'暫無班次資料'}catch(e){o.textContent='載入失敗'}};
+
+$('#lGo').onclick=async()=>{const o=$('#lO');o.textContent='載入中…';
+ try{const r=await J('https://rt.data.gov.hk/v1/transport/mtr/lrt/getSchedule?station_id='+$('#lS').value);
+  o.innerHTML=(r.platform_list||[]).map(p=>`<b>月台${p.platform_id}</b>`+p.route_list.map(t=>`<div>${esc(t.route_no)} 往${esc(t.dest_ch)}　${esc(t.time_ch)}</div>`).join('')).join('')||'暫無資料'}catch(e){o.textContent='載入失敗'}};
+
+authUI();
+</script></body></html>
