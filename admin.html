@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>管理後台 · 出街啦</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef3f1;--card:#fff;--ink:#12232b;--mut:#5d6f76;--line:#d3dfdc;--hb:#0b6e7f;--hb2:#e0f0f2;--amb:#f2a900;--red:#d6322e}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1a1e;--card:#172429;--ink:#e8f0ef;--mut:#92a5ab;--line:#2a3b41;--hb:#4fc1d4;--hb2:#1b3a41}}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Noto Sans TC",system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
+header{background:var(--hb);color:#fff;padding:20px 16px}
+@media(prefers-color-scheme:dark){header{background:#0b3a44}}
+.w{max-width:860px;margin:0 auto;padding:0 16px}header .w{padding:0;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+h1{margin:0;font-size:24px;font-weight:900}h3{font-size:16px;margin:0 0 8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin:14px 0}
+label{display:block;font-size:14px;color:var(--mut);margin:10px 0 4px}
+input,textarea,button{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%}
+button{cursor:pointer;width:auto;background:var(--hb);color:#fff;border:0;font-weight:700;padding:10px 18px}
+button.ghost{background:var(--hb2);color:var(--hb)}button.red{background:var(--red);color:#fff}
+header a{color:#fff}header button{background:rgba(255,255,255,.2)}
+button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid var(--amb);outline-offset:2px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:560px){.g2{grid-template-columns:1fr}}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0}.tabs button{background:var(--hb2);color:var(--hb)}.tabs button.on{background:var(--hb);color:#fff}
+.mut{color:var(--mut);font-size:13px}.hide{display:none}
+.li{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line);flex-wrap:wrap}
+.photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin:10px 0}
+.ph{position:relative}.ph img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px}
+.ph button{position:absolute;top:4px;right:4px;padding:2px 9px;background:var(--red);font-size:14px}
+</style>
+</head>
+<body>
+<header><div class="w"><h1>管理後台</h1><div><a href="index.html">← 返回網站</a>　<button id="out" class="hide">登出</button></div></div></header>
+<main class="w">
+
+<div class="card" id="login">
+<h3>管理員登入</h3>
+<div class="g2"><div><label for="ln">管理員名稱</label><input id="ln" autocomplete="username"></div>
+<div><label for="lp">密碼</label><input id="lp" type="password" autocomplete="current-password"></div></div>
+<button id="lgo" style="margin-top:12px">登入</button> <span class="mut" id="lm"></span>
+</div>
+
+<div id="panel" class="hide">
+<div class="card"><b id="who"></b></div>
+<div class="tabs" id="tabs"><button data-t="site" class="on">編輯網站</button><button data-t="media">相片 / 行程</button><button data-t="adm">管理員</button></div>
+
+<div id="t-site">
+<div class="card"><h3>網站內容</h3>
+<label for="s-t">網站名稱</label><input id="s-t">
+<label for="s-s">副標題</label><input id="s-s">
+<label for="s-n">公告（顯示喺首頁最頂，留空就唔顯示）</label><textarea id="s-n" rows="2"></textarea>
+<label for="s-f">頁底文字</label><textarea id="s-f" rows="2"></textarea>
+<button id="s-save" style="margin-top:12px">儲存</button> <span class="mut" id="s-m"></span></div>
+</div>
+
+<div id="t-media" class="hide">
+<div class="card"><h3>行程同相片</h3><p class="mut">最近 50 個行程。可以移除單張相，或者刪除成個行程（連回覆同相片）。</p><div id="o-list">載入中⋯⋯</div></div>
+</div>
+
+<div id="t-adm" class="hide">
+<div class="card"><h3>更改我嘅密碼</h3>
+<div class="g2"><div><label for="po">舊密碼</label><input id="po" type="password" autocomplete="current-password"></div>
+<div><label for="p1">新密碼（至少 6 個字）</label><input id="p1" type="password" autocomplete="new-password"></div></div>
+<label for="p2">再輸入一次新密碼</label><input id="p2" type="password" autocomplete="new-password">
+<button id="pgo" style="margin-top:12px">更改密碼</button> <span class="mut" id="pm"></span></div>
+<div class="card"><h3>增加管理員</h3>
+<div class="g2"><div><label for="an">新管理員名稱</label><input id="an"></div>
+<div><label for="ap">初始密碼（至少 6 個字）</label><input id="ap" type="password" autocomplete="new-password"></div></div>
+<button id="ago" style="margin-top:12px">增加管理員</button> <span class="mut" id="am"></span></div>
+<div class="card"><h3>管理員名單</h3><div id="a-list"></div></div>
+</div>
+</div>
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+const FBCFG={apiKey:"AIzaSyAagdEPgDY_2koF8E-dpIqeMS3aTRo3cLc",authDomain:"chan-b4286.firebaseapp.com",projectId:"chan-b4286",storageBucket:"chan-b4286.firebasestorage.app",messagingSenderId:"822761856387",appId:"1:822761856387:web:251ca2d09f22cabc076ab6"};
+let db=null;try{firebase.initializeApp(FBCFG);db=firebase.firestore()}catch(e){}
+const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const hp=async(n,p)=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode('chu-gaai-la|'+n+'|'+p)))].map(b=>b.toString(16).padStart(2,'0')).join('');
+const ADM0={'永晞':'8fe9ce90a2456d14ee78cc8b9882b9346d53c193db24bca0a5cfd4e415d211a2'};
+async function getAdmins(){const a={...ADM0};if(db){try{(await db.collection('admins').get()).forEach(x=>{if(x.data().h)a[x.id]=x.data().h})}catch(e){}}return a}
+let me=null;
+const say=(id,t)=>$(id).textContent=t;
+
+function enter(n,h){
+ me={n,h};$('#login').classList.add('hide');$('#panel').classList.remove('hide');$('#out').classList.remove('hide');
+ say('#who','已登入：'+n);loadSite();loadOutings();renderAdmins()}
+$('#lgo').onclick=async()=>{
+ const n=$('#ln').value.trim(),p=$('#lp').value;say('#lm','');
+ if(!n||!p){say('#lm','請填名稱同密碼');return}
+ const h=await hp(n,p);
+ if((await getAdmins())[n]===h){sessionStorage.setItem('adm',JSON.stringify({n,h}));$('#lp').value='';enter(n,h)}else say('#lm','名稱或密碼唔啱')};
+$('#out').onclick=()=>{sessionStorage.removeItem('adm');location.href='index.html'};
+(async()=>{try{const v=JSON.parse(sessionStorage.getItem('adm')||'null');if(v&&(await getAdmins())[v.n]===v.h)enter(v.n,v.h)}catch(e){}})();
+
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{
+ document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));
+ ['site','media','adm'].forEach(k=>$('#t-'+k).classList.toggle('hide',k!==b.dataset.t))});
+
+/* 編輯網站 */
+async function loadSite(){if(!db)return;try{const s=await db.collection('site').doc('config').get();if(s.exists){const c=s.data();
+ $('#s-t').value=c.title||'';$('#s-s').value=c.subtitle||'';$('#s-n').value=c.notice||'';$('#s-f').value=c.footer||''}}catch(e){}}
+$('#s-save').onclick=async()=>{
+ if(!db){say('#s-m','雲端未連線');return}
+ try{await db.collection('site').doc('config').set({title:$('#s-t').value.trim(),subtitle:$('#s-s').value.trim(),notice:$('#s-n').value.trim(),footer:$('#s-f').value.trim(),by:me.n,ts:Date.now()});say('#s-m','✅ 已儲存，首頁即時更新')}catch(e){say('#s-m','儲存失敗，請稍後再試')}};
+
+/* 相片 / 行程 */
+async function loadOutings(){
+ if(!db){$('#o-list').textContent='雲端未連線';return}
+ try{const q=await db.collection('outings').orderBy('ts','desc').limit(50).get();
+  $('#o-list').innerHTML=q.empty?'<p class="mut">未有行程</p>':q.docs.map(x=>{const d=x.data();
+   return `<div data-id="${x.id}"><div class="li"><span><b>${esc(d.title)}</b>　<span class="mut">${esc(d.date||'')}　${esc(d.host||'')}</span></span><span><button class="ghost" data-a="ph">相片</button> <button class="red" data-a="del">刪除行程</button></span></div><div class="photos hide"></div></div>`}).join('');
+  $('#o-list').querySelectorAll('[data-id]').forEach(w=>{const id=w.dataset.id,g=w.querySelector('.photos');
+   w.querySelector('[data-a=ph]').onclick=()=>{g.classList.toggle('hide');if(!g.classList.contains('hide'))loadPhotos(id,g)};
+   w.querySelector('[data-a=del]').onclick=async()=>{if(!confirm('確定刪除呢個行程？回覆同相片都會一齊刪除，唔可以還原。'))return;
+    try{const o=db.collection('outings').doc(id);for(const c of['photos','rsvp'])for(const d of(await o.collection(c).get()).docs)await d.ref.delete();await o.delete();w.remove()}catch(e){alert('刪除失敗')}}})
+ }catch(e){$('#o-list').textContent='讀取失敗：'+e.message}}
+async function loadPhotos(id,g){
+ g.textContent='載入中⋯⋯';
+ const q=await db.collection('outings').doc(id).collection('photos').orderBy('ts').get();
+ g.innerHTML=q.empty?'<span class="mut">未有相片</span>':q.docs.map(x=>`<div class="ph"><img src="${x.data().data}" alt="${esc(x.data().by)} 嘅相"><button data-p="${x.id}" aria-label="移除相片">✕</button></div>`).join('');
+ g.querySelectorAll('button[data-p]').forEach(b=>b.onclick=async()=>{if(!confirm('確定移除呢張相？'))return;
+  try{await db.collection('outings').doc(id).collection('photos').doc(b.dataset.p).delete();b.parentElement.remove()}catch(e){alert('移除失敗')}})}
+
+/* 管理員 */
+async function renderAdmins(){const a=await getAdmins();
+ $('#a-list').innerHTML=Object.keys(a).map(k=>`<div class="li"><span>${esc(k)}${k===me.n?'（你）':''}${ADM0[k]?'　<span class="mut">主管理員</span>':''}</span>${k===me.n||ADM0[k]?'':`<button class="red" data-k="${esc(k)}">移除</button>`}</div>`).join('');
+ $('#a-list').querySelectorAll('button[data-k]').forEach(b=>b.onclick=async()=>{if(!confirm('確定移除管理員 '+b.dataset.k+'？'))return;
+  try{await db.collection('admins').doc(b.dataset.k).delete();renderAdmins()}catch(e){alert('移除失敗')}})}
+$('#pgo').onclick=async()=>{const o=$('#po').value,n1=$('#p1').value,n2=$('#p2').value;say('#pm','');
+ if(!db){say('#pm','雲端未連線');return}
+ if((await getAdmins())[me.n]!==await hp(me.n,o)){say('#pm','舊密碼唔啱');return}
+ if(n1.length<6){say('#pm','新密碼至少 6 個字');return}
+ if(n1!==n2){say('#pm','兩次新密碼唔一樣');return}
+ try{const h=await hp(me.n,n1);await db.collection('admins').doc(me.n).set({h,ts:Date.now()});me.h=h;sessionStorage.setItem('adm',JSON.stringify(me));say('#pm','✅ 密碼已更改');$('#po').value=$('#p1').value=$('#p2').value=''}catch(e){say('#pm','儲存失敗，請稍後再試')}};
+$('#ago').onclick=async()=>{const n=$('#an').value.trim(),p=$('#ap').value;say('#am','');
+ if(!db){say('#am','雲端未連線');return}
+ if(!n||/[\/.]/.test(n)){say('#am','名稱唔可以留空或包含 / .');return}
+ if(p.length<6){say('#am','密碼至少 6 個字');return}
+ if((await getAdmins())[n]){say('#am','呢個名已經存在');return}
+ try{await db.collection('admins').doc(n).set({h:await hp(n,p),by:me.n,ts:Date.now()});say('#am','✅ 已增加管理員 '+n);$('#an').value=$('#ap').value='';renderAdmins()}catch(e){say('#am','儲存失敗，請稍後再試')}};
+</script>
+</body>
+</html>
